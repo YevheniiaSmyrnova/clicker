@@ -3,6 +3,13 @@ import subprocess
 import cv2
 import numpy as np
 import tempfile
+import argparse
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("url", help="URL to the page")
+parser.add_argument("img", help="path to the image")
+args = parser.parse_args()
 
 
 def driver_click(driver, x, y, default_y_offset=96):
@@ -25,21 +32,30 @@ def get_coordinates_pattern(img_rgb, pattern):
     res = cv2.matchTemplate(img_rgb, pattern, cv2.TM_CCOEFF_NORMED)
     threshold = .8
     loc = np.where(res >= threshold)
-    pt = zip(*loc[::-1])[0]
+    points = zip(*loc[::-1])
+    if not points:
+        return None
+    elif len(points) > 1:
+        print("Several occurrences are found, using the first among them.")
+    pt = points[0]
     x, y = (pt[0] + w / 2.0, pt[1] - h / 2.0)
     return x, y
 
 
-def main():
+def main(url, img):
     driver = webdriver.Firefox()
-    driver.get("https://www.youtube.com/watch?v=ys5hmBkyvag")
+    driver.get(url)
     img_rgb = get_screenshot(driver)
-    pattern = cv2.imread('pattern.png')
-    x, y = get_coordinates_pattern(img_rgb, pattern)
-    driver_click(driver, x, y)
+    pattern = cv2.imread(img)
+    coords = get_coordinates_pattern(img_rgb, pattern)
+    if coords is None:
+        print("Image isn't found.")
+        return
+    driver_click(driver, coords[0], coords[1])
+
     driver.close()
-    # driver.quit()
+    driver.quit()
 
 
 if __name__ == '__main__':
-    main()
+    main(args.url, args.img)
