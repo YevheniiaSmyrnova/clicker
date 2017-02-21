@@ -14,8 +14,7 @@ click on the found position.
 ## Prerequisites
 
 `xdotool`, `opencv` packages and selenium driver installed
-[selenium installation]
-(https://github.com/SeleniumHQ/selenium/blob/master/py/docs/source/index.rst).
+[selenium installation](https://github.com/SeleniumHQ/selenium/blob/master/py/docs/source/index.rst).
 
 ## Usage
 
