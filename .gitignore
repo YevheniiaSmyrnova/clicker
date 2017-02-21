@@ -1,0 +1,6 @@
+# python precompiled files:
+*.py~
+*.pyc
+*.pyo
+.idea
+.venv
