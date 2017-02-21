@@ -1,19 +1,24 @@
-*Clicker
+# Clicker
 
-**Description
+## Description
+
 Python script to handle URLs, get position of the image on the screen and
 click on the found position.
 
-**Technologies
+## Technologies
+
 - Language: Python 2.7
+
 - Libraries: OpenCV, Selenium
 
-**Prerequisites
+## Prerequisites
+
 `xdotool`, `opencv` packages and selenium driver installed
 [selenium installation]
 (https://github.com/SeleniumHQ/selenium/blob/master/py/docs/source/index.rst)
 
-**Usage
+## Usage
+
 The script has two required arguments: URL and path to the image.
 
 ```
