@@ -14,22 +14,22 @@ args = parser.parse_args()
 
 
 def driver_click(driver, x, y, default_y_offset=66):
-    logging.info("x=%d y=%d" % (x, y))
 
     # more broot force click coords via X11 automation tool
     # this doesn't work with tightvnc though
-    # position = driver.get_window_position()
-    # x += position['x']
+    position = driver.get_window_position()
+    x += position['x']
     # need to take into account offset by y that is a constant
-    # y += position['y'] + default_y_offset
-    # subprocess.call(["xdotool", "mousemove", str(x), str(y)])
-    # subprocess.call(["xdotool", "click", "1"])
+    y += position['y'] + default_y_offset
+    subprocess.call(["xdotool", "mousemove", "--sync", str(x), str(y), "click", "1"])
+
+    logging.info("x=%d y=%d" % (x, y))
 
     # click coords with Selenium (may not always work)
-    elem = driver.execute_script("""
-    return document.elementFromPoint(arguments[0], arguments[1]);
-    """, x, y)
-    elem.click()
+    # elem = driver.execute_script("""
+    # return document.elementFromPoint(arguments[0], arguments[1]);
+    # """, x, y)
+    # elem.click()
 
 
 def get_screenshot(driver):
@@ -67,9 +67,12 @@ def main(url, img):
         return
     driver_click(driver, coords[0], coords[1])
 
-    # just to test visually
+    # give time for chrome to react
     import time
     time.sleep(5)
+
+    driver.get_screenshot_as_file("result.png")
+    logging.info("Result saved to result.png")
 
     driver.close()
     driver.quit()

@@ -25,6 +25,10 @@ RUN wget https://chromedriver.storage.googleapis.com/2.27/chromedriver_linux64.z
 # https://bugs.chromium.org/p/chromium/issues/detail?id=519952#c8
 #volumes: /dev/shm:/dev/shm
 
+#xdotool due to https://github.com/jordansissel/xdotool/issues/126
+RUN apt-get install -y -o DPkg::Options::=--force-confold libx11-dev libxtst-dev libxinerama-dev
+RUN wget https://github.com/jordansissel/xdotool/archive/edbbb7a8f664ceacbb2cffbe8ee4f5a26b5addc8.zip && unzip edbbb7a8f664ceacbb2cffbe8ee4f5a26b5addc8.zip && cd xdotool-edbbb7a8f664ceacbb2cffbe8ee4f5a26b5addc8 && make install
+
 WORKDIR /clicker
 
 #docker build -t clicker .

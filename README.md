@@ -51,3 +51,5 @@ On machine with X11 start vncviewer and connect to IP of host running clicker an
 ```
 vncviewer 127.0.0.1:5935
 ```
+
+Password is test37
