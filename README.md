@@ -28,3 +28,26 @@ source .venv/bin/activate
 pip install -r requirements.txt
 python main.py https://www.youtube.com/watch?v=l8F2g7I-qh0 pattern.png
 ```
+
+## Usage via docker
+
+Build image once
+
+```
+docker build -t clicker .
+```
+
+Run
+
+
+```
+docker run -it --rm -p 5935:5935 -v `pwd`:/clicker clicker bash
+vncserver :35 -geometry 1400x1050
+python main.py https://www.youtube.com/watch?v=l8F2g7I-qh0 pattern.png
+```
+
+On machine with X11 start vncviewer and connect to IP of host running clicker and port 5935, for instance
+
+```
+vncviewer 127.0.0.1:5935
+```

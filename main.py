@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import tempfile
 import argparse
+import logging
 
 
 parser = argparse.ArgumentParser()
@@ -12,13 +13,23 @@ parser.add_argument("img", help="path to the image")
 args = parser.parse_args()
 
 
-def driver_click(driver, x, y, default_y_offset=96):
-    position = driver.get_window_position()
-    x += position['x']
+def driver_click(driver, x, y, default_y_offset=66):
+    logging.info("x=%d y=%d" % (x, y))
+
+    # more broot force click coords via X11 automation tool
+    # this doesn't work with tightvnc though
+    # position = driver.get_window_position()
+    # x += position['x']
     # need to take into account offset by y that is a constant
-    y += position['y'] + default_y_offset
-    subprocess.call(["xdotool", "mousemove", str(x), str(y)])
-    subprocess.call(["xdotool", "click", "1"])
+    # y += position['y'] + default_y_offset
+    # subprocess.call(["xdotool", "mousemove", str(x), str(y)])
+    # subprocess.call(["xdotool", "click", "1"])
+
+    # click coords with Selenium (may not always work)
+    elem = driver.execute_script("""
+    return document.elementFromPoint(arguments[0], arguments[1]);
+    """, x, y)
+    elem.click()
 
 
 def get_screenshot(driver):
@@ -36,26 +47,34 @@ def get_coordinates_pattern(img_rgb, pattern):
     if not points:
         return None
     elif len(points) > 1:
-        print("Several occurrences are found, using the first among them.")
+        logging.warning("Several occurrences are found, using the first among them.")
     pt = points[0]
-    x, y = (pt[0] + w / 2.0, pt[1] - h / 2.0)
+    x, y = (pt[0] + w / 2.0, pt[1] + h / 2.0)
     return x, y
 
 
 def main(url, img):
-    driver = webdriver.Firefox()
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--start-maximized")
+    driver = webdriver.Chrome(chrome_options=chrome_options)
     driver.get(url)
     img_rgb = get_screenshot(driver)
     pattern = cv2.imread(img)
     coords = get_coordinates_pattern(img_rgb, pattern)
     if coords is None:
-        print("Image isn't found.")
+        logging.error("Image isn't found.")
         return
     driver_click(driver, coords[0], coords[1])
+
+    # just to test visually
+    import time
+    time.sleep(5)
 
     driver.close()
     driver.quit()
 
 
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     main(args.url, args.img)
