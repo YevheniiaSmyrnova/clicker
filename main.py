@@ -5,6 +5,7 @@ import numpy as np
 import tempfile
 import argparse
 import logging
+import imutils
 
 
 def driver_click(driver, x, y, default_x_offset, default_y_offset):
@@ -33,18 +34,39 @@ def get_screenshot(driver):
 
 
 def get_coordinates_pattern(img_rgb, pattern, proportion_img_x, proportion_img_y):
-    w, h = pattern.shape[:-1]
-    res = cv2.matchTemplate(img_rgb, pattern, cv2.TM_CCOEFF_NORMED)
-    threshold = .8
-    loc = np.where(res >= threshold)
-    points = zip(*loc[::-1])
-    if not points:
-        return None
-    elif len(points) > 1:
-        logging.warning("Several occurrences are found, using the first among them.")
-    pt = points[0]
-    x, y = (pt[0] + proportion_img_x * w, pt[1] + proportion_img_y * h)
+    startX, startY, endX, endY = find_image(img_rgb, pattern)
+    w = (endX - startX) / 2.0
+    h = (endY - startY) / 2.0
+    print (startX, startY, endX, endY)
+    x, y = (startX + proportion_img_x * w, startY + proportion_img_y * h)
     return x, y
+
+
+def find_image(img_rgb, pattern):
+    template = cv2.cvtColor(pattern, cv2.COLOR_BGR2GRAY)
+    template = cv2.Canny(template, 50, 200)
+    (tH, tW) = template.shape[:2]
+
+    gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
+    found = None
+    for scale in np.linspace(0.2, 5.0, 100)[::-1]:
+        resized = imutils.resize(gray, width=int(gray.shape[1] * scale))
+        r = gray.shape[1] / float(resized.shape[1])
+
+        if resized.shape[0] < tH or resized.shape[1] < tW:
+            break
+
+        edged = cv2.Canny(resized, 50, 200)
+        result = cv2.matchTemplate(edged, template, cv2.TM_CCOEFF)
+        (_, maxVal, _, maxLoc) = cv2.minMaxLoc(result)
+
+        if found is None or maxVal > found[0]:
+            found = (maxVal, maxLoc, r)
+
+    (_, maxLoc, r) = found
+    (startX, startY) = (int(maxLoc[0] * r), int(maxLoc[1] * r))
+    (endX, endY) = (int((maxLoc[0] + tW) * r), int((maxLoc[1] + tH) * r))
+    return startX, startY, endX, endY
 
 
 def main(url, img, default_x_offset, default_y_offset, proportion_img_x, proportion_img_y, delay):
